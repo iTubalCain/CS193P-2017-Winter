@@ -11,13 +11,132 @@ import Foundation
 
 struct CalculatorModel {
     
-// MARK: - Data structures
+    // MARK: - Public interface
     
     /**
-     Defines the types of calculator function which can be handled on pressing 
-     a function key. Functions include constant values like pi, unary functions 
-     like square root, binary functions like add and subtract, and equals 
-     to trigger eva;uation.
+     
+        Returns whether a binary function calculation is pending,
+        ie. the first operand and operator have been saved while
+        awaiting the second operand.
+     
+         - Returns: true if a binary function is pending; 
+                    else false
+     
+     */
+    
+    var calculationPending : Bool {
+        get { return (pendingBinaryFunction != nil) }   // isPartialResult()
+    }
+    
+    /**
+     
+        Resets (clears) calculator to initial state.
+     
+     */
+    
+    mutating func reset() {     // clear()
+        accumulator = (nil, " ")
+        pendingBinaryFunction = nil
+        //        internalProgram.removeAll()
+    }
+    
+    /**
+     
+        Property backed by record of keypad strokes.
+     
+     */
+    
+    var description : String {
+        get {
+            return accumulator.description
+        }
+        set {
+            accumulator.description += newValue + " "
+        }
+    }
+    
+    var result: Double? { get { return accumulator.xRegister } }
+
+    /**
+     
+        Performs the previouisly-saved first operand and
+        function with the newly entered second operand in 
+        the xRegister.
+     
+     */
+    
+    mutating func performPendingBinaryFunction() {
+        if (pendingBinaryFunction != nil) && (accumulator.xRegister != nil) {
+            accumulator.xRegister = pendingBinaryFunction!.perform(secondOperand: accumulator.xRegister!)
+        }
+        pendingBinaryFunction = nil
+    }
+    
+    /**
+     
+        Performs the function designated by the function key
+        pressed.
+         
+         - Parameter functionKey: Function calculator key 
+                                  pressed by the user.
+     
+     */
+    
+    mutating func performFunction(_ functionKey: String) {
+        //        internalProgram.append(symbol as AnyObject)
+        if let function = functions[functionKey] {
+            switch function {
+            case .equals:   break
+            default:        description = functionKey
+            }
+            switch function {
+            case .constant(let constant):
+                accumulator.xRegister = constant
+            case .equals:
+                performPendingBinaryFunction()
+            case .nullaryFunction(let function):
+                accumulator.xRegister = function()
+            case .unaryFunction(let function):
+                if accumulator.xRegister != nil {
+                    accumulator.xRegister = function(accumulator.xRegister!)
+                }
+            case .binaryFunction(let function):
+                if accumulator.xRegister != nil {
+                    performPendingBinaryFunction()
+                    pendingBinaryFunction = PendingBinaryFunction(function: function, firstOperand: accumulator.xRegister!)
+                }
+            }
+        }
+    }
+    
+    /**
+     
+         Stores the user-entered value into the xRegister.
+         
+         - Parameter operand: numeric value entered by the user.
+     
+     */
+    
+    mutating func setXRegister(_ operand: Double) {
+        let NUMBER_FORMATTER_ERROR = "Failed to format number"
+        
+        accumulator.xRegister = operand
+        //        internalProgram.append(operand as AnyObject)
+        if let operandString = formatter.string(from: NSNumber(value: operand)) {
+            description = operandString
+        }
+        else { description = NUMBER_FORMATTER_ERROR }
+    }
+
+    // MARK: - Data structures
+    
+    /**
+     
+         Defines the types of calculator function which can be handled on pressing
+         a function key. Functions include constant values like pi, unary functions 
+         like square root, binary functions like add and subtract, and equals 
+         to trigger eva;uation.
+     
      */
     
     private enum Function {
@@ -27,6 +146,12 @@ struct CalculatorModel {
         case unaryFunction((Double) -> Double)
         case binaryFunction((Double, Double) -> Double)
     }
+    
+    /**
+     
+         Defines the coorespondence between function keys and their associated values and-or functions.
+     
+     */
     
     private var functions: Dictionary<String, Function> =
         [
@@ -47,9 +172,28 @@ struct CalculatorModel {
             "÷":    Function.binaryFunction({ $0 / $1 })
         ]
     
-    private var accumulator: Double?
+    /**
+     
+        Tuple associates xRegister and calculator description 
+        which must be in synch.
+     
+     */
+    
+    private var accumulator: (xRegister: Double?, description: String)
+    
+    /**
+     
+        Holds PendingBinaryFunction struct if any.
+     
+     */
+    
     private var pendingBinaryFunction: PendingBinaryFunction?
-    private var tape = " "      // record of keystrokes
+    
+    /**
+     
+     X register plus operator.
+     
+     */
     
     private struct PendingBinaryFunction {
         let function:       ((Double, Double) -> Double)
@@ -60,84 +204,11 @@ struct CalculatorModel {
         }
     }
     
-    var calculationPending : Bool {     // isPartialResult()
-        get {
-            return (pendingBinaryFunction != nil)
-        }
+    // MARK: - Local function implementations
+    
+    init() {
+        accumulator = (nil, " ")   // initialize tuple
     }
-    
-    mutating func reset() {
-        accumulator = nil
-        tape = ""
-//        description = " "
-        pendingBinaryFunction = nil
-//        internalProgram.removeAll()
-    }
-    
-    var description : String {
-        get {
-            return tape
-        }
-        set {
-            tape += newValue + " "
-        }
-    }
-    
-    var result: Double? { get { return accumulator } }  
-    
-    // MARK: - Functions
-
-    mutating func performPendingBinaryFunction() {
-        if (pendingBinaryFunction != nil) && (accumulator != nil) {
-            accumulator = pendingBinaryFunction!.perform(secondOperand: accumulator!)
-        }
-        pendingBinaryFunction = nil
-    }
-    
-    /**
-     Performs the function designated by the function key pressed.
-     
-     - Parameter functionKey: Function calculator key pressed by the user.
-     */
-    
-    mutating func performFunction(_ functionKey: String) {
-//        internalProgram.append(symbol as AnyObject)
-        if let function = functions[functionKey] {
-            switch function {
-                case .equals:   break
-                default:        description = functionKey
-            }
-            switch function {
-                case .constant(let constant):
-                    accumulator = constant
-//                    tape = ""
-                case .equals:
-                    performPendingBinaryFunction()
-                case .nullaryFunction(let function):
-                    accumulator = function()
-                case .unaryFunction(let function):
-                    if accumulator != nil {
-                        accumulator = function(accumulator!)
-                    }
-                case .binaryFunction(let function):
-                    if accumulator != nil {
-                        performPendingBinaryFunction()
-                        pendingBinaryFunction = PendingBinaryFunction(function: function, firstOperand: accumulator!)
-                    }
-            }
-        }
-    }
-    
-    mutating func setAccumulator(_ operand: Double) {
-        accumulator = operand
-//        internalProgram.append(operand as AnyObject)
-        if let operandString = formatter.string(from: NSNumber(value: operand)) {
-            description = operandString
-
-        }
-    }
-    
-    // MARK: - Function implementations
     
     private static func randomNumber() -> Double {
         return Double(arc4random()).truncatingRemainder(dividingBy: 1000001.0) * 0.000001

@@ -48,7 +48,7 @@ class CalculatorVC: UIViewController {
     
     @IBAction func functionKeyPressed(_ functionKey: UIButton) {
         if entryInProgress {
-            model.setAccumulator(displayValue)
+            model.setXRegister(displayValue)
             entryInProgress = false
         }
         model.performFunction(functionKey.currentTitle!)
@@ -62,12 +62,12 @@ class CalculatorVC: UIViewController {
     @IBAction func loadMpressed(_ button: UIButton) {
         //        model.setOperand(MEMORY_KEY)
         //        performOp(sender)
-//        displayValue = model.result
+        //        displayValue = model.result
     }
 
     @IBAction func storeMpressed(_ button: UIButton) {
-//        model.variableValues[MEMORY_KEY] = displayValue
-//        displayValue = model.result
+        //        model.variableValues[MEMORY_KEY] = displayValue
+        //        displayValue = model.result
     }
 
     // MARK: - Outlets
@@ -75,26 +75,27 @@ class CalculatorVC: UIViewController {
     @IBOutlet weak var display: UILabel!    // Calculator one line display
     @IBOutlet weak var history: UILabel!    // Calculator history record
     
-// MARK: - Constants and variables
+    // MARK: - Constants and variables
     
     private let MEMORY_KEY      = "M"
     private let DECIMAL_POINT   = "."
     private let ELLIPSIS_SIGN   = "…"
     private let EQUALS_SIGN     = "="
     
+    /// Binary function awaiting second operand.
     private var entryInProgress = false
+    
     private var model = CalculatorModel()
     
     /**
      
-     Reset both the calculator model and display.
+        Reset both the calculator model and display.
      
      */
     
     private func resetCalculator() {
         model.reset()
         displayValue = 0.0
-        //        display.text = "0"
         history.text = " "      // model.description
         entryInProgress = false
         //        model.variableValues[M] = 0.0
@@ -102,7 +103,7 @@ class CalculatorVC: UIViewController {
     
     /**
      
-     display.text property
+        Property backed by display.text.
      
      */
     
@@ -115,7 +116,7 @@ class CalculatorVC: UIViewController {
         }
     }
 
-// MARK: - Delegate methods
+    // MARK: - Delegate methods
 
     override func viewDidLoad() {
         super.viewDidLoad()
