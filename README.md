@@ -1,10 +1,11 @@
 # CS193P-2017-Winter
-Calculator project for Stanford CS193P
-
 WARNING: Identifier names are different than required by the assignment. Do not submit this directly as your homework.
 
-Master = Programming Project 1: Calculator including all extra credit except accumulator tuple.
+Calculator project for Stanford CS193P Winter 2017
+==================================================
 
-CompleteProject1 = Completed Programming Project 1: Calculator.
+1. Master = Programming Project 1: Calculator including all extra credit except accumulator tuple.
 
-unfinished = Programming Project 2: Calculator Brain
+2. CompleteProject1 = Completed Programming Project 1: Calculator.
+
+3. unfinished = Programming Project 2: Calculator Brain
